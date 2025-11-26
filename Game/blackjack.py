@@ -1,5 +1,6 @@
 import graphics as gf
 import random
+import time
 import os
 
 #organizaçao dos diretorios
@@ -80,15 +81,18 @@ x = 450
 for nome in jogador:
   img = gf.Image(gf.Point(x, 400), os.path.join(dir_imagens, nome))
   img.draw(win)
+  time.sleep(0.4)
   x += 90
 
 #carta ABERTA do dealer
 img_d1 = gf.Image(gf.Point(450, 200), os.path.join(dir_imagens, deal_c1))
 img_d1.draw(win)
+time.sleep(0.4)
 
 #carta FECHADA do dealer
 img_d2 = gf.Image(gf.Point(540, 200), os.path.join(dir_imagens, "back.png"))
 img_d2.draw(win)
+time.sleep(0.4)
 
 #botão HIT
 hit_ret = gf.Rectangle(gf.Point(900, 450), gf.Point(1050, 500))
@@ -115,11 +119,16 @@ txt_jog.draw(win)
 
 #mostrar carta revelada do dealer
 valor_d1, _ = dividir_valor_naipe(deal_c1)
-
-txt_deal = gf.Text(gf.Point(200, 100), f"Dealer: Carta revelada = {valor_d1}")
-txt_deal.setSize(20)
-txt_deal.setFill("white")
-txt_deal.draw(win)
+if valor_d1 in ["J","Q","K"]:
+  txt_deal = gf.Text(gf.Point(200, 100), "Dealer: 10")
+  txt_deal.setSize(20)
+  txt_deal.setFill("white")
+  txt_deal.draw(win)
+else:
+  txt_deal = gf.Text(gf.Point(200, 100), f"Dealer: {valor_d1}")
+  txt_deal.setSize(20)
+  txt_deal.setFill("white")
+  txt_deal.draw(win)
 
 #LOOP DO JOGADOR
 jogando = True
@@ -135,6 +144,7 @@ while jogando:
 
     img = gf.Image(gf.Point(x_jog, 400), os.path.join(dir_imagens, nova))
     img.draw(win)
+    time.sleep(0.4)
     x_jog += 90
 
     #recalcular pontos
@@ -152,9 +162,11 @@ while jogando:
 img_d2.undraw()
 img_real = gf.Image(gf.Point(540, 200), os.path.join(dir_imagens, deal_c2))
 img_real.draw(win)
+time.sleep(0.4)
 
 pontos_dealer = calcular_pontos([dividir_valor_naipe(c) for c in dealer])
 x_deal = 540 + 90
+txt_deal.setText(f"Dealer: {pontos_dealer}")
 
 while pontos_dealer < 17:
   nova = baralho.pop()
@@ -162,9 +174,11 @@ while pontos_dealer < 17:
 
   img = gf.Image(gf.Point(x_deal, 200), os.path.join(dir_imagens, nova))
   img.draw(win)
+  time.sleep(0.4)
   x_deal += 90
 
   pontos_dealer = calcular_pontos([dividir_valor_naipe(c) for c in dealer])
+  txt_deal.setText(f"Dealer: {pontos_dealer}")
 
 resultado = ""
 
@@ -179,6 +193,7 @@ elif pontos_jog < pontos_dealer:
 else:
   resultado = "Empate!"
 
+time.sleep(0.5)
 res_txt = gf.Text(gf.Point(600, 560), resultado)
 res_txt.setSize(26)
 res_txt.setFill("yellow")
