@@ -9,9 +9,6 @@ Funcionalidades:
 - Regras tradicionais de Blackjack
 - Jogo contra o dealer (computador)
 - Apostas com gerenciamento de fichas
-- Exibição clara do estado do jogo a cada rodada
-- Contagem de vitórias, derrotas e empates
-- Código organizado em classes (Card, Deck, Hand, Game) para fins didáticos
 
 Tecnologias utilizadas:
 - Python 3
@@ -20,10 +17,3 @@ Tecnologias utilizadas:
 Escolha o valor da aposta:
 - Decida entre hit (comprar carta) ou stand (parar)
 - Tente vencer o dealer sem ultrapassar 21!
-
-Objetivo acadêmico:
-- O projeto foi desenvolvido para fins educacionais, reforçando:
-- Manipulação de listas e objetos
-- Estruturas condicionais e de repetição
-- Modularização de código
-- Boas práticas de programação
