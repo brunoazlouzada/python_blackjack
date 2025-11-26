@@ -1,2 +1,29 @@
-# python_blackjack
+#python blackjack
+
 Este repositório contém um jogo completo de Blackjack (21) desenvolvido em Python para a disciplina Algoritmos e Estruturas de Dados (AED).
+O objetivo do projeto é praticar lógica de programação, modularização e manipulação de estruturas de dados através da implementação de um jogo clássico de cartas.
+
+Funcionalidades:
+- Baralho padrão de 52 cartas totalmente embaralhado
+- Sistema de mãos com cálculo automático de valores (Ás = 1 ou 11)
+- Regras tradicionais de Blackjack
+- Jogo contra o dealer (computador)
+- Apostas com gerenciamento de fichas
+- Exibição clara do estado do jogo a cada rodada
+- Contagem de vitórias, derrotas e empates
+- Código organizado em classes (Card, Deck, Hand, Game) para fins didáticos
+
+Tecnologias utilizadas:
+- Python 3
+- Lógica e estrutura de dados implementadas sem bibliotecas externas
+
+Escolha o valor da aposta:
+- Decida entre hit (comprar carta) ou stand (parar)
+- Tente vencer o dealer sem ultrapassar 21!
+
+Objetivo acadêmico:
+- O projeto foi desenvolvido para fins educacionais, reforçando:
+- Manipulação de listas e objetos
+- Estruturas condicionais e de repetição
+- Modularização de código
+- Boas práticas de programação
