@@ -80,7 +80,6 @@ txt_jog = gf.Text(gf.Point(545, 450), pontos_jog)
 txt_jog.setSize(20)
 txt_jog.setFill("white")
 txt_jog.setStyle("bold")
-txt_jog.setFace("arial")
 txt_jog.draw(win)
 
 #mostrar carta revelada do dealer
@@ -90,21 +89,18 @@ if valor_d1 in ["J","Q","K"]:
   txt_deal.setSize(20)
   txt_deal.setFill("white")
   txt_deal.setStyle("bold")
-  txt_deal.setFace("arial")
   txt_deal.draw(win)
 elif valor_d1 == "A":
   txt_deal = gf.Text(gf.Point(455, 100), 11)
   txt_deal.setSize(20)
   txt_deal.setFill("white")
   txt_deal.setStyle("bold")
-  txt_deal.setFace("arial")
   txt_deal.draw(win)
 else:
   txt_deal = gf.Text(gf.Point(455, 100), valor_d1)
   txt_deal.setSize(20)
   txt_deal.setFill("white")
   txt_deal.setStyle("bold")
-  txt_deal.setFace("arial")
   txt_deal.draw(win)
 
 #LOOP DO JOGADOR
