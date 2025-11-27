@@ -132,10 +132,10 @@ def play_round(fichas: int):
   txt_mais10.draw(win)
 
   # botão para começar a rodada
-  btn_jogar = gf.Circle(gf.Point(1000, 100), 24)
+  btn_jogar = gf.Circle(gf.Point(600, 425), 24)
   btn_jogar.setFill("lightblue")
   btn_jogar.draw(win)
-  txt_jogar = gf.Text(gf.Point(1000, 100), "Jogar") # texto do botão para começar a rodada
+  txt_jogar = gf.Text(gf.Point(600, 425), "Jogar") # texto do botão para começar a rodada
   txt_jogar.setSize(12)
   txt_jogar.draw(win)
 
