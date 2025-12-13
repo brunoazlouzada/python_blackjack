@@ -2,177 +2,208 @@ import graphics as gf
 import random
 import time
 import os
-
+import subprocess
 import funcoes_blackjack as fb
 
-#organizaçao dos diretorios
-dir_atual = os.path.dirname(__file__)
-dir_backgrounds = os.path.join(dir_atual, 'images', 'backgrounds')
-dir_imagens = os.path.join(dir_atual, 'images')
+def jogar_partida(win, fichas):
 
-win = gf.GraphWin("Blackjack", 1200, 600)
-centro = gf.Point(600, 300)
+  win.delete("all")
 
-fundo = gf.Image(centro, os.path.join(dir_backgrounds, "blackjack1200x600.png"))
-fundo.draw(win)
+  # diretórios
+  dir_atual = os.path.dirname(__file__)
+  dir_backgrounds = os.path.join(dir_atual, 'images', 'backgrounds')
+  dir_imagens = os.path.join(dir_atual, 'images')
 
-#criar e embalharar o baralho
-baralho = fb.criar_baralho()
-random.shuffle(baralho)
+  centro = gf.Point(600, 300)
+  fundo = gf.Image(centro, os.path.join(dir_backgrounds, "blackjack1200x600.png"))
+  fundo.draw(win)
 
-#maos jogador e dealer
-jogador = []
-dealer = []
+  # apostas
+  aposta = fb.tela_aposta(win, fichas)
+  fichas -= aposta
+  fb.salvar_fichas(fichas)
 
-#jogador recebe 2 cartas
-jog_c1 = baralho.pop()
-jog_c2 = baralho.pop()
-jogador.append(jog_c1)
-jogador.append(jog_c2)
+  # texto contador de fichas
+  txt_fichas = gf.Text(gf.Point(1100, 30), f"Fichas: {fichas}")
+  txt_fichas.setFill("white")
+  txt_fichas.setSize(14)
+  txt_fichas.draw(win)
 
-#dealer recebe 1 carta aberta e 1 fechada
-deal_c1 = baralho.pop()   #aberta
-deal_c2 = baralho.pop()   #fechada
-dealer.append(deal_c1)
-dealer.append(deal_c2)
+  # baralho
+  baralho = fb.criar_baralho()
+  random.shuffle(baralho)
 
-#desenhar cartas do jogador
-x = 590
-y = 500
-for nome in jogador:
-  img = gf.Image(gf.Point(x, y), os.path.join(dir_imagens, nome))
-  img.draw(win)
-  time.sleep(0.4)
-  x += 30
-  y -= 5
+  jogador = []
+  dealer = []
 
-#carta ABERTA do dealer
-img_d1 = gf.Image(gf.Point(500, 150), os.path.join(dir_imagens, deal_c1))
-img_d1.draw(win)
-time.sleep(0.4)
+  jogador.extend([baralho.pop(), baralho.pop()])
+  dealer.extend([baralho.pop(), baralho.pop()])
 
-#carta FECHADA do dealer
-img_d2 = gf.Image(gf.Point(550, 150), os.path.join(dir_imagens, "back.png"))
-img_d2.draw(win)
-time.sleep(0.4)
-
-#botão HIT
-hit_circle = gf.Circle(gf.Point(558, 570), 25)
-hit_circle.setFill("lightgray")
-hit_circle.draw(win)
-
-hit_txt = gf.Text(gf.Point(558, 570), "HIT")
-hit_txt.setSize(10)
-hit_txt.draw(win)
-
-#botão STAND
-stand_circle = gf.Circle(gf.Point(640, 570), 25)
-stand_circle.setFill("lightgray")
-stand_circle.draw(win)
-
-stand_txt = gf.Text(gf.Point(640, 570), "STAND")
-stand_txt.setSize(10)
-stand_txt.draw(win)
-
-pontos_jog = fb.calcular_pontos([fb.dividir_valor_naipe(jog_c1), fb.dividir_valor_naipe(jog_c2)])
-
-txt_jog = gf.Text(gf.Point(545, 450), pontos_jog)
-txt_jog.setSize(20)
-txt_jog.setFill("white")
-txt_jog.setStyle("bold")
-txt_jog.draw(win)
-
-#mostrar carta revelada do dealer
-valor_d1, _ = fb.dividir_valor_naipe(deal_c1)
-if valor_d1 in ["J","Q","K"]:
-  txt_deal = gf.Text(gf.Point(455, 100), 10)
-  txt_deal.setSize(20)
-  txt_deal.setFill("white")
-  txt_deal.setStyle("bold")
-  txt_deal.draw(win)
-elif valor_d1 == "A":
-  txt_deal = gf.Text(gf.Point(455, 100), 11)
-  txt_deal.setSize(20)
-  txt_deal.setFill("white")
-  txt_deal.setStyle("bold")
-  txt_deal.draw(win)
-else:
-  txt_deal = gf.Text(gf.Point(455, 100), valor_d1)
-  txt_deal.setSize(20)
-  txt_deal.setFill("white")
-  txt_deal.setStyle("bold")
-  txt_deal.draw(win)
-
-#LOOP DO JOGADOR
-jogando = True
-x_jog = 590 + 30*2  # posição inicial para cartas novas do jogador
-y_jog = 500 - 5*2
-
-while jogando:
-  click = win.getMouse()
-  cx, cy = click.getX(), click.getY()
-
-  if fb.clicou_circulo(hit_circle, cx, cy):  # jogador clicou HIT
-    nova = baralho.pop()
-    jogador.append(nova)
-
-    img = gf.Image(gf.Point(x_jog, y_jog), os.path.join(dir_imagens, nova))
+  # cartas jogador
+  x, y = 590, 500
+  for carta in jogador:
+    img = gf.Image(gf.Point(x, y), os.path.join(dir_imagens, carta))
     img.draw(win)
-    time.sleep(0.4)
-    x_jog += 30
-    y_jog -= 5
+    time.sleep(0.3)
+    x += 30
+    y -= 5
 
-    #recalcular pontos
-    pontos_jog = fb.calcular_pontos([fb.dividir_valor_naipe(c) for c in jogador])
-    txt_jog.setText(pontos_jog)
+  # cartas dealer
+  img_d1 = gf.Image(gf.Point(500, 150), os.path.join(dir_imagens, dealer[0]))
+  img_d1.draw(win)
 
-    if pontos_jog > 21:
-      jogando = False  # estourou
-      break
+  img_d2 = gf.Image(gf.Point(550, 150), os.path.join(dir_imagens, "back.png"))
+  img_d2.draw(win)
 
-  elif fb.clicou_circulo(stand_circle, cx, cy):  # jogador clicou STAND
-    jogando = False
+  # botões
+  hit = gf.Circle(gf.Point(558, 570), 25)
+  hit.setFill("lightgray")
+  hit.draw(win)
+  gf.Text(gf.Point(558, 570), "HIT").draw(win)
 
-#revelar carta do dealer
-img_d2.undraw()
-img_real = gf.Image(gf.Point(550, 150), os.path.join(dir_imagens, deal_c2))
-img_real.draw(win)
-time.sleep(0.4)
+  stand = gf.Circle(gf.Point(640, 570), 25)
+  stand.setFill("lightgray")
+  stand.draw(win)
+  gf.Text(gf.Point(640, 570), "STAND").draw(win)
 
-pontos_dealer = fb.calcular_pontos([fb.dividir_valor_naipe(c) for c in dealer])
-x_deal = 550 + 55
-txt_deal.setText(pontos_dealer)
+  # pontos jogador
+  pontos_jog = fb.calcular_pontos([fb.dividir_valor_naipe(c) for c in jogador])
+  txt_jog = gf.Text(gf.Point(545, 450), pontos_jog)
+  txt_jog.setSize(20)
+  txt_jog.setFill("white")
+  txt_jog.setStyle("bold")
+  txt_jog.draw(win)
 
-while pontos_dealer < 17:
-  nova = baralho.pop()
-  dealer.append(nova)
+  # pontos dealer
+  valor_d1, _ = fb.dividir_valor_naipe(dealer[0])
+  if valor_d1 in ["J", "Q", "K"]:
+    valor_dealer_txt = 10
+  elif valor_d1 == "A":
+    valor_dealer_txt = 11
+  else:
+    valor_dealer_txt = int(valor_d1)
 
-  img = gf.Image(gf.Point(x_deal, 150), os.path.join(dir_imagens, nova))
-  img.draw(win)
-  time.sleep(0.4)
-  x_deal += 55
+  txt_deal = gf.Text(gf.Point(455, 100), valor_dealer_txt)
+  txt_deal.setSize(20)
+  txt_deal.setFill("white")
+  txt_deal.setStyle("bold")
+  txt_deal.draw(win)
+
+  # loop jogador
+  jogando = True
+  x_jog, y_jog = 650, 490
+
+  while jogando:
+    click = win.getMouse()
+    cx, cy = click.getX(), click.getY()
+
+    if fb.clicou_circulo(hit, cx, cy):
+      nova = baralho.pop()
+      jogador.append(nova)
+
+      img = gf.Image(gf.Point(x_jog, y_jog), os.path.join(dir_imagens, nova))
+      img.draw(win)
+      time.sleep(0.3)
+      x_jog += 30
+      y_jog -= 5
+
+      pontos_jog = fb.calcular_pontos([fb.dividir_valor_naipe(c) for c in jogador])
+      txt_jog.setText(pontos_jog)
+
+      if pontos_jog > 21:
+        jogando = False
+
+    elif fb.clicou_circulo(stand, cx, cy):
+      jogando = False
+
+  # dealer
+  img_d2.undraw()
+  img_real = gf.Image(gf.Point(550, 150), os.path.join(dir_imagens, dealer[1]))
+  img_real.draw(win)
 
   pontos_dealer = fb.calcular_pontos([fb.dividir_valor_naipe(c) for c in dealer])
   txt_deal.setText(pontos_dealer)
 
-resultado = ""
+  x_deal = 605
+  while pontos_dealer < 17:
+    nova = baralho.pop()
+    dealer.append(nova)
 
-if pontos_jog > 21:
-  resultado = "Você estourou! Dealer vence."
-elif pontos_dealer > 21:
-  resultado = "Dealer estourou! Você venceu!"
-elif pontos_jog > pontos_dealer:
-  resultado = "Você venceu!"
-elif pontos_jog < pontos_dealer:
-  resultado = "Dealer venceu!"
-else:
-  resultado = "Empate!"
+    img = gf.Image(gf.Point(x_deal, 150), os.path.join(dir_imagens, nova))
+    img.draw(win)
+    time.sleep(0.3)
+    x_deal += 55
 
-time.sleep(0.5)
-res_txt = gf.Text(gf.Point(600, 400), resultado)
-res_txt.setSize(26)
-res_txt.setFill("yellow")
-res_txt.draw(win)
+    pontos_dealer = fb.calcular_pontos([fb.dividir_valor_naipe(c) for c in dealer])
+    txt_deal.setText(pontos_dealer)
 
-win.getMouse()
+  # resultado
+  if pontos_jog > 21:
+    resultado = "Você estourou!"
+  elif pontos_dealer > 21 or pontos_jog > pontos_dealer:
+    resultado = "Você venceu!"
+    fichas += aposta * 2
+  elif pontos_jog == pontos_dealer:
+    resultado = "Empate!"
+    fichas += aposta
+  else:
+    resultado = "Dealer venceu!"
+
+  fb.salvar_fichas(fichas)
+  txt_fichas.setText(f"Fichas: {fichas}")
+
+  res = gf.Text(gf.Point(600, 400), resultado)
+  res.setSize(26)
+  res.setFill("yellow")
+  res.draw(win)
+
+  # final
+  denovo = gf.Circle(gf.Point(500, 500), 40)
+  denovo.setFill("lightgreen")
+  denovo.draw(win)
+  gf.Text(gf.Point(500, 500), "DE NOVO").draw(win)
+
+  sair = gf.Circle(gf.Point(700, 500), 40)
+  sair.setFill("lightcoral")
+  sair.draw(win)
+  gf.Text(gf.Point(700, 500), "SAIR").draw(win)
+
+  while True:
+    click = win.getMouse()
+    cx, cy = click.getX(), click.getY()
+
+    if fb.clicou_circulo(denovo, cx, cy):
+      return fichas, True
+
+    if fb.clicou_circulo(sair, cx, cy):
+      return fichas, False
+
+
+# loop principal
+fichas = fb.carregar_fichas()
+tentativas_flappy = 0
+
+win = gf.GraphWin("Blackjack", 1200, 600)
+
+rodando = True
+while rodando:
+
+  if fichas == 0:
+    if tentativas_flappy < 3:
+      win.close()
+
+      ganho = fb.jogar_flappy_e_ganhar_fichas()
+      fichas += ganho
+      fb.salvar_fichas(fichas)
+
+      tentativas_flappy += 1
+      win = gf.GraphWin("Blackjack", 1200, 600)
+      continue
+    else:
+      fichas = 5
+      fb.salvar_fichas(fichas)
+      tentativas_flappy = 0
+
+  fichas, rodando = jogar_partida(win, fichas)
+
 win.close()
