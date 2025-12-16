@@ -1,45 +1,89 @@
 from graphics import *
 import time
 import random
+import math
+import os
 
 # janela
 LARGURA = 400
 ALTURA = 600
-win = GraphWin("Flappy Bird (Graphics.py)", LARGURA, ALTURA)
-win.setBackground("skyblue")
+win = GraphWin("Flappy Jack", LARGURA, ALTURA)
+fundo = Image(Point(LARGURA // 2, ALTURA // 2), os.path.join("images", "fundo_mesa.png"))
+fundo.draw(win)
 
-# "passaro"
-passaro = Circle(Point(100, ALTURA // 2), 15)
-passaro.setFill("yellow")
+# passaro (usar imagem)
+# carregar a imagem do pássaro
+passaro = Image(Point(100, ALTURA // 2), "images/flappy_ficha.png")
+# reduzir escala se muito grande
+MAX_BIRD_DIM = 40
+bw = passaro.getWidth(); bh = passaro.getHeight()
+factor = max(1, math.ceil(max(bw, bh) / MAX_BIRD_DIM))
+if factor > 1:
+  passaro.img = passaro.img.subsample(factor)
+# recalcular dimensões e raio para colisão
+bw = passaro.getWidth(); bh = passaro.getHeight()
+raio_passaro = max(bw, bh) / 2
+# desenhar o pássaro
 passaro.draw(win)
+using_image = True
 
 gravidade = 0
 impulso = -5
 
 # canoas
 cano_largura = 60
-gap = 140
+# espaçamento fixo entre canos (mínimo 100 px; garantimos que seja pelo menos o diâmetro do pássaro)
+gap = max(100, 2 * raio_passaro + 4)
 velocidade = 3
 
+# imagem usada para os canos
+pipe_pixmap = Image(Point(0,0), "images/back.png")
+carta_w = pipe_pixmap.getWidth()
+carta_h = pipe_pixmap.getHeight()
+cano_largura = carta_w  # ajustar largura do cano para a largura do tile
+
 def criar_canos():
-  topo = random.randint(80, 350)
-  # cano superior
-  cano_cima = Rectangle(Point(LARGURA, 0), Point(LARGURA + cano_largura, topo))
-  cano_cima.setFill("green")
-  # cano inferior
-  cano_baixo = Rectangle(Point(LARGURA, topo + gap), Point(LARGURA + cano_largura, ALTURA))
-  cano_baixo.setFill("green")
-  return topo, cano_cima, cano_baixo
+  # garantir que o topo seja gerado com espaço suficiente para o gap e pelo menos um tile
+  upper = max(80, ALTURA - gap - carta_h)
+  topo = random.randint(80, upper)
+  cano_x = LARGURA
+  # cano superior (com cartas)
+  top_tiles = []
+  # usar ceil e alinhar para que a base dos tiles superiores fique exatamente em `topo`
+  num_top = math.ceil(topo / carta_h)
+  shift_top = num_top * carta_h - topo
+  for i in range(num_top):
+    y = i * carta_h + carta_h/2 - shift_top
+    tile = Image(Point(cano_x + carta_w/2, y), "images/back.png")
+    top_tiles.append(tile)
+  # cano inferior (com cartas)
+  bottom_tiles = []
+  bottom_height = ALTURA - (topo + gap)
+  # usar ceil para garantir que o topo das tiles inferiores comece exatamente em topo+gap
+  num_bottom = math.ceil(bottom_height / carta_h)
+  for i in range(num_bottom):
+    y = topo + gap + i * carta_h + carta_h/2
+    tile = Image(Point(cano_x + carta_w/2, y), "images/back.png")
+    bottom_tiles.append(tile)
+  return topo, top_tiles, bottom_tiles, cano_x
 
-topo, cano_cima, cano_baixo = criar_canos()
-cano_cima.draw(win)
-cano_baixo.draw(win)
+topo, cano_cima, cano_baixo, cano_x = criar_canos()
+for t in cano_cima: t.draw(win)
+for t in cano_baixo: t.draw(win)
 
-# pontucao
+# pontuacao
 pontos = 0
 texto = Text(Point(LARGURA // 2, 40), "0")
 texto.setSize(24)
+texto.setFill("white")
 texto.draw(win)
+
+def circulo_colide_retangulo_coords(cx, cy, r, esq, dir, top, bot):
+  nearest_x = max(esq, min(cx, dir))
+  nearest_y = max(top, min(cy, bot))
+  dx = cx - nearest_x
+  dy = cy - nearest_y
+  return (dx*dx + dy*dy) <= (r*r)
 
 # loop jogo
 while True:
@@ -55,39 +99,52 @@ while True:
   gravidade += 0.25
   passaro.move(0, gravidade)
 
-  # mover canos
-  cano_cima.move(-velocidade, 0)
-  cano_baixo.move(-velocidade, 0)
+  # mover canos (mover todos as cartas e atualizar posição x)
+  for t in cano_cima: t.move(-velocidade, 0)
+  for t in cano_baixo: t.move(-velocidade, 0)
+  cano_x -= velocidade
 
-  # pegar posições
-  px = passaro.getCenter().getX()
-  py = passaro.getCenter().getY()
+  # pegar posições do pássaro (imagem)
+  px = passaro.getAnchor().getX()
+  py = passaro.getAnchor().getY()
 
-  cc1x = cano_cima.getP1().getX()
-  cc2x = cano_cima.getP2().getX()
+  esq_cano = cano_x
+  dir_cano = cano_x + carta_w
   topo_cano = topo
 
-  # reciclar cano
-  if cc2x < 0:
-    topo, cano_cima_new, cano_baixo_new = criar_canos()
-    cano_cima.undraw()
-    cano_baixo.undraw()
-    cano_cima = cano_cima_new
-    cano_baixo = cano_baixo_new
-    cano_cima.draw(win)
-    cano_baixo.draw(win)
+  # calcular hit boxes reais das cartas (para colisão visual precisa)
+  def hit_boxes(cartas):
+    if not cartas:
+      return None
+    left = min(t.getAnchor().getX() - t.getWidth()/2 for t in cartas)
+    right = max(t.getAnchor().getX() + t.getWidth()/2 for t in cartas)
+    top = min(t.getAnchor().getY() - t.getHeight()/2 for t in cartas)
+    bottom = max(t.getAnchor().getY() + t.getHeight()/2 for t in cartas)
+    return (left, right, top, bottom)
+
+  hit_box_top = hit_boxes(cano_cima)
+  hit_box_bot = hit_boxes(cano_baixo)
+
+  # reciclar cano quando todo o cano saiu da tela
+  if dir_cano < 0:
+    for t in cano_cima: t.undraw()
+    for t in cano_baixo: t.undraw()
+    topo, cano_cima, cano_baixo, cano_x = criar_canos()
+    for t in cano_cima: t.draw(win)
+    for t in cano_baixo: t.draw(win)
 
     pontos += 1
     texto.setText(str(pontos))
 
-  # colisão com bordas
-  if py < 0 or py > ALTURA:
+  # colisão com bordas (considerando o raio do pássaro)
+  if py - raio_passaro < 0 or py + raio_passaro > ALTURA:
     break
 
-  # colisão com canos (simples)
-  if cc1x < px < cc2x:
-    if py < topo_cano or py > topo_cano + gap:
-      break
+  # (opcional) se quiser trocar a imagem conforme velocidade, poderia ser implementado aqui
+
+  # colisão com canos (precisa - usar bounding boxes reais dos tiles)
+  if (hit_box_top is not None and circulo_colide_retangulo_coords(px, py, raio_passaro, *hit_box_top)) or (hit_box_bot is not None and circulo_colide_retangulo_coords(px, py, raio_passaro, *hit_box_bot)):
+    break
 
   time.sleep(0.02)
 
