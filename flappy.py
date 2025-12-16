@@ -4,16 +4,18 @@ import random
 import math
 import os
 
+# diretório de imagens relativo a este arquivo
+dir_atual = os.path.dirname(__file__)
+dir_images = os.path.join(dir_atual, "images")
+
 # janela
 LARGURA = 400
 ALTURA = 600
 win = GraphWin("Flappy Jack", LARGURA, ALTURA)
-fundo = Image(Point(LARGURA // 2, ALTURA // 2), os.path.join("images", "fundo_mesa.png"))
+fundo = Image(Point(LARGURA // 2, ALTURA // 2), os.path.join(dir_images, "fundo_mesa.png"))
 fundo.draw(win)
 
-# passaro (usar imagem)
-# carregar a imagem do pássaro
-passaro = Image(Point(100, ALTURA // 2), "images/flappy_ficha.png")
+passaro = Image(Point(100, ALTURA // 2), os.path.join(dir_images, "flappy_ficha.png"))
 # reduzir escala se muito grande
 MAX_BIRD_DIM = 40
 bw = passaro.getWidth(); bh = passaro.getHeight()
@@ -23,38 +25,37 @@ if factor > 1:
 # recalcular dimensões e raio para colisão
 bw = passaro.getWidth(); bh = passaro.getHeight()
 raio_passaro = max(bw, bh) / 2
-# desenhar o pássaro
 passaro.draw(win)
 using_image = True
 
 gravidade = 0
 impulso = -5
 
-# canoas
+# canos
 cano_largura = 60
-# espaçamento fixo entre canos (mínimo 100 px; garantimos que seja pelo menos o diâmetro do pássaro)
+# espaçamento fixo entre canos
 gap = max(100, 2 * raio_passaro + 4)
 velocidade = 3
 
 # imagem usada para os canos
-pipe_pixmap = Image(Point(0,0), "images/back.png")
+pipe_pixmap = Image(Point(0,0), os.path.join(dir_images, "back.png"))
 carta_w = pipe_pixmap.getWidth()
 carta_h = pipe_pixmap.getHeight()
 cano_largura = carta_w  # ajustar largura do cano para a largura do tile
 
 def criar_canos():
-  # garantir que o topo seja gerado com espaço suficiente para o gap e pelo menos um tile
+  # garantir que o topo seja gerado com espaço suficiente para o gap
   upper = max(80, ALTURA - gap - carta_h)
   topo = random.randint(80, upper)
   cano_x = LARGURA
-  # cano superior (com cartas)
+  # cano superior
   top_tiles = []
   # usar ceil e alinhar para que a base dos tiles superiores fique exatamente em `topo`
   num_top = math.ceil(topo / carta_h)
   shift_top = num_top * carta_h - topo
   for i in range(num_top):
     y = i * carta_h + carta_h/2 - shift_top
-    tile = Image(Point(cano_x + carta_w/2, y), "images/back.png")
+    tile = Image(Point(cano_x + carta_w/2, y), os.path.join(dir_images, "back.png"))
     top_tiles.append(tile)
   # cano inferior (com cartas)
   bottom_tiles = []
@@ -63,7 +64,7 @@ def criar_canos():
   num_bottom = math.ceil(bottom_height / carta_h)
   for i in range(num_bottom):
     y = topo + gap + i * carta_h + carta_h/2
-    tile = Image(Point(cano_x + carta_w/2, y), "images/back.png")
+    tile = Image(Point(cano_x + carta_w/2, y), os.path.join(dir_images, "back.png"))
     bottom_tiles.append(tile)
   return topo, top_tiles, bottom_tiles, cano_x
 
@@ -140,9 +141,7 @@ while True:
   if py - raio_passaro < 0 or py + raio_passaro > ALTURA:
     break
 
-  # (opcional) se quiser trocar a imagem conforme velocidade, poderia ser implementado aqui
-
-  # colisão com canos (precisa - usar bounding boxes reais dos tiles)
+  # colisão com canos
   if (hit_box_top is not None and circulo_colide_retangulo_coords(px, py, raio_passaro, *hit_box_top)) or (hit_box_bot is not None and circulo_colide_retangulo_coords(px, py, raio_passaro, *hit_box_bot)):
     break
 

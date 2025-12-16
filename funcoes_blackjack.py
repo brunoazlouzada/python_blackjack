@@ -71,13 +71,13 @@ def tela_aposta(win, fichas):
   titulo.draw(win)
   objetos.append(titulo)
 
-  txt_aposta = gf.Text(gf.Point(600, 260), f"Aposta: {aposta}")
-  txt_aposta.setSize(22)
-  txt_aposta.setFill("yellow")
+  txt_aposta = gf.Text(gf.Point(600, 233), aposta)
+  txt_aposta.setSize(25)
+  txt_aposta.setFill("white")
   txt_aposta.draw(win)
   objetos.append(txt_aposta)
 
-  valores = [1000, 100, 10, 5]
+  valores = [100, 25, 10, 5]
   fichas_btn = []
 
   x = 350
@@ -120,11 +120,11 @@ def tela_aposta(win, fichas):
       if clicou_circulo(ficha, cx, cy):
         if pode_apostar(fichas, aposta, valor):
           aposta += valor
-          txt_aposta.setText(f"Aposta: {aposta}")
+          txt_aposta.setText(aposta)
 
     if clicou_circulo(allin, cx, cy):
       aposta = fichas
-      txt_aposta.setText(f"Aposta: {aposta}")
+      txt_aposta.setText(aposta)
 
     if clicou_circulo(confirmar, cx, cy) and aposta > 0:
       for obj in objetos:

@@ -2,7 +2,6 @@ import graphics as gf
 import random
 import time
 import os
-import subprocess
 import funcoes_blackjack as fb
 
 def jogar_partida(win, fichas):
